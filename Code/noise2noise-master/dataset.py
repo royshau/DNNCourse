@@ -39,24 +39,15 @@ def random_crop_noised_clean(x, add_noise):
 
 
 def downsample(x,rand_n):
-    if rand_n==1:
-        x_sub = x[:, 0::2, 0::2]
-
-    if rand_n == 2:
-        x_sub = x[:, 1::2, 0::2]
-
-    if rand_n == 3:
-        x_sub = x[:, 0::2, 1::2]
-
-    if rand_n == 4:
-        x_sub = x[:, 1::2, 1::2]
-    else:
-        print(x)
-    return x_sub
+    x = tf.cond(tf.equal(rand_n,1),lambda: x[:, 0::2, 0::2],lambda: x)
+    x = tf.cond(tf.equal(rand_n,2),lambda: x[:, 1::2, 0::2],lambda: x)
+    x = tf.cond(tf.equal(rand_n,3),lambda: x[:, 0::2, 1::2],lambda: x)
+    x = tf.cond(tf.equal(rand_n,4),lambda: x[:, 1::2, 1::2],lambda: x)
+    return x
 def random_crop_downsample(x):
     cropped = tf.random_crop(resize_small_image(x), size=[1, 256, 256]) / 255.0 - 0.5
     options = [1,2,3,4]
-    np.random.shuffle(options)
+    options = tf.random.shuffle(options)
     return (downsample(cropped,options[0]),downsample(cropped,options[1]), cropped)
 
 def create_dataset(train_tfrecords, minibatch_size, add_noise):
