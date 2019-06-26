@@ -8,7 +8,6 @@
 import dnnlib
 import argparse
 import sys
-
 import dnnlib.submission.submit as submit
 
 import validation

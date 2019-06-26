@@ -28,7 +28,7 @@ class ValidationSet:
     def load(self, dataset_dir):
         import glob
 
-        abs_dirname = os.path.join(submit.get_path_from_template(dataset_dir), '*')
+        abs_dirname = os.path.join(submit.get_path_from_template(dataset_dir), '*.tif')
         fnames = sorted(glob.glob(abs_dirname))
         if len(fnames) == 0:
             print ('\nERROR: No files found using the following glob pattern:', abs_dirname, '\n')
@@ -37,7 +37,7 @@ class ValidationSet:
         images = []
         for fname in fnames:
             try:
-                im = PIL.Image.open(fname).convert('RGB')
+                im = np.expand_dims(PIL.Image.open(fname).convert('L'),axis=2)
                 arr = np.array(im, dtype=np.float32)
                 reshaped = arr.transpose([2, 0, 1]) / 255.0 - 0.5
                 images.append(reshaped)
@@ -52,7 +52,7 @@ class ValidationSet:
             w = orig_img.shape[2]
             h = orig_img.shape[1]
 
-            noisy_img = noise_func(orig_img)
+            noisy_img = orig_img
             pred255 = util.infer_image(net, noisy_img)
             orig255 = util.clip_to_uint8(orig_img)
             assert (pred255.shape[2] == w and pred255.shape[1] == h)

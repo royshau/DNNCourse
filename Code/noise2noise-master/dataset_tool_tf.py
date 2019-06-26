@@ -63,12 +63,14 @@ def main():
     images = sorted(glob.glob(os.path.join(args.input_dir, '*.JPEG')))
     images += sorted(glob.glob(os.path.join(args.input_dir, '*.jpg')))
     images += sorted(glob.glob(os.path.join(args.input_dir, '*.png')))
+    images += sorted(glob.glob(os.path.join(args.input_dir, '*.tif')))
+
     np.random.RandomState(0x1234f00d).shuffle(images)
 
     #----------------------------------------------------------
     outdir = os.path.dirname(args.out)
     os.makedirs(outdir, exist_ok=True)
-    writer = tf.python_io.TFRecordWriter(args.out)
+    writer = tf.io.TFRecordWriter(args.out)
     for (idx, imgname) in enumerate(images):
         print (idx, imgname)
         image = load_image(imgname)

@@ -56,8 +56,8 @@ def conv(name, x, fmaps, gain):
     with tf.variable_scope(name):
         return conv2d_bias(x, fmaps, 3, gain)
 
-def autoencoder(x, width=256, height=256, **_kwargs):
-    x.set_shape([None, 3, height, width])
+def autoencoder(x, width=128, height=128, **_kwargs):
+    x.set_shape([None, 1, height, width])
 
     skips = [x]
 
@@ -109,6 +109,6 @@ def autoencoder(x, width=256, height=256, **_kwargs):
     n = conv_lr('dec_conv1a', n, 64)
     n = conv_lr('dec_conv1b', n, 32)
 
-    n = conv('dec_conv1', n, 3, gain=1.0)
+    n = conv('dec_conv1', n, 1, gain=1.0)
 
     return n

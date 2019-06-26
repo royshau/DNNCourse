@@ -18,7 +18,7 @@ import config
 
 from util import save_image, save_snapshot
 from validation import ValidationSet
-from dataset import create_dataset
+from dataset import create_dataset,create_dataset_subsampled
 
 class AugmentGaussian:
     def __init__(self, validation_stddev, train_stddev_rng_range):
@@ -75,7 +75,7 @@ def train(
     # Initialize TensorFlow graph and session using good default settings
     tfutil.init_tf(config.tf_config)
 
-    dataset_iter = create_dataset(train_tfrecords, minibatch_size, noise_augmenter.add_train_noise_tf)
+    dataset_iter = create_dataset_subsampled(train_tfrecords, minibatch_size, noise_augmenter.add_train_noise_tf)
 
     # Construct the network using the Network helper class and a function defined in config.net_config
     with tf.device("/gpu:0"):
