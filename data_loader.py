@@ -40,7 +40,7 @@ def generator_true_false(list_tuples, person_to_images_map,input_size, batch_siz
 
         yield [X1, X2], labels
 
-def generator_triplets(list_tuples, person_to_images_map, batch_size=16):
+def generator_triplets(list_tuples, person_to_images_map,input_size, batch_size=16):
     ppl = list(person_to_images_map.keys())
     while True:
         batch_tuples = sample(list_tuples, batch_size)
@@ -59,15 +59,15 @@ def generator_triplets(list_tuples, person_to_images_map, batch_size=16):
                 print(x[0])
 
         X = [choice(person_to_images_map[x[0]]) for x in batch_tuples]
-        anchor = np.array([read_img(x) for x in X])
+        anchor = np.array([read_img(x,input_size) for x in X])
 
         X = [choice(person_to_images_map[x[1]]) for x in batch_tuples]
-        good = np.array([read_img(x) for x in X])
+        good = np.array([read_img(x,input_size) for x in X])
 
         X = [choice(person_to_images_map[x[2]]) for x in batch_tuples]
-        bad = np.array([read_img(x) for x in X])
-
-        yield [anchor, good,bad]
+        bad = np.array([read_img(x,input_size) for x in X])
+        labels = [1] * len(batch_tuples) #Dummy labels
+        yield [anchor, good,bad] , labels
 
 
 def create_dataset(relationships_file,images_path,validation_prefix):

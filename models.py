@@ -2,9 +2,9 @@
 from tensorflow.keras.layers import Flatten, Dense, Input, GlobalAveragePooling2D, \
     GlobalMaxPooling2D, Activation, Conv2D, MaxPooling2D, BatchNormalization, \
     AveragePooling2D, Reshape, Permute, multiply,add,\
-    sqrt,sum,square,maximum,\
     Subtract,Multiply,Concatenate,Dropout,GlobalMaxPool2D,GlobalAvgPool2D
 
+from tensorflow.keras.backend import sqrt,sum,square,maximum
 from tensorflow.keras.models import Model
 from tensorflow.keras.utils import get_file
 import warnings
@@ -349,7 +349,7 @@ def classification_model(base_model=RESNET50(include_top=False, weights='vggface
     return model
 
 
-def triplet_loss(y_true, y_pred, alpha=400, N=5):
+def triplet_loss(y_true, y_pred, alpha=400):
     """
     Implementation of the triplet loss function
     Arguments:
@@ -379,14 +379,35 @@ def triplet_loss(y_true, y_pred, alpha=400, N=5):
 
     return loss
 
-def triple_loss_model(base_model=RESNET50(include_top=False, weights='vggface', input_shape=(None, None, 3))):
+def triplet_metric(y_true, y_pred):
+    """
+
+    """
+    #     print((y_pred[0]))
+    N = y_pred.shape[1] // 3
+    anchor = y_pred[:, 0:N]
+    good = y_pred[:, N:N * 2]
+    bad = y_pred[:, N * 2:N * 3]
+
+    # distance between the anchor and the positive
+    pos_dist = sqrt(sum(square(anchor - good), axis=1) + .01)
+
+    # distance between the anchor and the negative
+    neg_dist = sqrt(sum(square(anchor - bad), axis=1) + .01)
+
+    # compute loss
+    basic_loss = (pos_dist - neg_dist)
+    return basic_loss
+
+
+def triplet_loss_model(base_model=RESNET50(include_top=False, weights='vggface', input_shape=(None, None, 3))):
     anchor = Input(shape=(None, None, 3))
     good = Input(shape=(None, None, 3))
     bad = Input(shape=(None, None, 3))
 
-    anchor = base_model(anchor)
-    good = base_model(good)
-    bad = base_model(bad)
+    anchor_emb = base_model(anchor)
+    good_emb = base_model(good)
+    bad_emb = base_model(bad)
 
     # x1_ = Reshape(target_shape=(7*7, 2048))(x1)
     # x2_ = Reshape(target_shape=(7*7, 2048))(x2)
@@ -394,21 +415,24 @@ def triple_loss_model(base_model=RESNET50(include_top=False, weights='vggface', 
     # x_dot = Dot(axes=[2, 2], normalize=True)([x1_, x2_])
     # x_dot = Flatten()(x_dot)
 
-    anchor_x = GlobalAvgPool2D()(anchor)
-    good_x = GlobalAvgPool2D()(good)
-    bad_x = GlobalAvgPool2D()(bad)
+    anchor_x = GlobalAvgPool2D()(anchor_emb)
+    good_x = GlobalAvgPool2D()(good_emb)
+    bad_x = GlobalAvgPool2D()(bad_emb)
 
     merged_embeddings = Concatenate(axis=-1)([anchor_x, good_x, bad_x])
 
-    x3 = Subtract()([x1, x2])
-    x3 = Multiply()([x3, x3])
-
-    x = Multiply()([x1, x2])
-    x = Concatenate(axis=-1)([x, x3])
-
-    x = Dense(100, activation="relu")(x)
-    x = Dropout(0.01)(x)
-    out = Dense(1, activation="sigmoid")(x)
-    model = Model([anchor, good,bad], [merged_embeddings,pred])
+    #
+    # mse_good = Subtract()([anchor_x, good_x])
+    # mse_good = Multiply()([mse_good, mse_good])
+    #
+    # mse_bad = Subtract()([anchor_x, bad_x])
+    # mse_bad = Multiply()([mse_bad, mse_bad])
+    #
+    # pred_good = Dense(100, activation="relu")(mse_good)
+    #
+    # x = Dropout(0.01)(x)
+    # out = Dense(1, activation="sigmoid")(x)
+    model = Model([anchor, good,bad], merged_embeddings)
 
     return model
+

@@ -2,15 +2,15 @@ import tensorflow as tf
 import numpy as np
 from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
 from tensorflow.keras.optimizers import Adam
-from models import RESNET50,classification_model
+from models import RESNET50,classification_model,triplet_loss_model
 from data_loader import read_img
 import pandas as pd
 import tqdm
 test_path = "data/test/"
 input_size = (197,197)
 
-weights = 'baseline.h5'
-model = classification_model()
+weights = 'triple_24_06.h5'
+model = triplet_loss_model()
 model.summary()
 
 model.load_weights(weights)
